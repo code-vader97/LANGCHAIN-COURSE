@@ -1,8 +1,7 @@
 import os
 from dotenv import load_dotenv
 from langchain_core.prompts import PromptTemplate
-from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
-
+from langchain_groq import ChatGroq
 load_dotenv()
 
 def main():
@@ -15,9 +14,9 @@ def main():
         return
 
     # Check for API token
-    api_token = os.environ.get("HUGGINGFACEHUB_API_TOKEN")
+    api_token = os.environ.get("GROQ_API_KEY")
     if not api_token:
-        print("Error: HUGGINGFACEHUB_API_TOKEN not set in environment.")
+        print("Error: GROQ_API_KEY not set in environment.")
         return
 
     summary_template = (
@@ -30,17 +29,14 @@ def main():
         input_variables=["information"], template=summary_template
     )
 
-    llm = HuggingFaceEndpoint(
-        repo_id="meta-llama/Llama-3.1-8B-Instruct",
-        huggingfacehub_api_token=api_token,
-        max_new_tokens=512,
-        temperature=0,
-    )
+    llm=ChatGroq(
+        model="openai/gpt-oss-120b",
+        api_key=api_token,
+    )   
 
-    chat_model = ChatHuggingFace(llm=llm)
-
-    chain = summary_prompt_template | chat_model
+    chain = summary_prompt_template | llm
     response = chain.invoke(input={"information": information})
+
     print(response.content)
 
 if __name__ == "__main__":
